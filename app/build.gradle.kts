@@ -14,8 +14,8 @@ android {
         applicationId = "com.neomaverick.stride"
         minSdk = 28
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = (System.getenv("GITHUB_RUN_NUMBER") ?: "1").toInt()
+        versionName = "1.0.${System.getenv("GITHUB_RUN_NUMBER") ?: "0"}"
         // Optional cloud sync: set these as environment variables (or GitHub secrets) to turn on Firestore backup.
         buildConfigField("String", "FIREBASE_PROJECT_ID", "\"${System.getenv("STRIDE_FIREBASE_PROJECT_ID") ?: ""}\"")
         buildConfigField("String", "FIREBASE_APP_ID", "\"${System.getenv("STRIDE_FIREBASE_APP_ID") ?: ""}\"")

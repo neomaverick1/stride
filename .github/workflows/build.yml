@@ -20,14 +20,31 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Unit tests + screenshot tests
         run: ./gradlew testDebugUnitTest
-      - name: Build the APK
-        run: ./gradlew assembleRelease
-      - name: Publish the APK
+      - name: Build the APK and the Google Play bundle
+        run: ./gradlew assembleRelease bundleRelease
+      - name: Sign them
+        env:
+          UPLOAD_JKS_B64: ${{ secrets.UPLOAD_JKS_B64 }}
+          UPLOAD_STORE_PASSWORD: ${{ secrets.UPLOAD_STORE_PASSWORD }}
+          UPLOAD_KEY_PASSWORD: ${{ secrets.UPLOAD_KEY_PASSWORD }}
+          UPLOAD_KEY_ALIAS: ${{ secrets.UPLOAD_KEY_ALIAS }}
+        run: bash .github/sign-android.sh app/build/outputs/apk/release/app-release.apk Stride.apk app/build/outputs/bundle/release/app-release.aab Stride-Play.aab
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android
+          path: |
+            Stride.apk
+            Stride-Play.aab
+      - name: Publish the APK and the Play bundle
         if: github.event_name == 'push'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v1.0.${{ github.run_number }}
-          name: Stride 1.0 (build ${{ github.run_number }})
-          files: app/build/outputs/apk/release/app-release.apk
+          name: Stride 1.0.${{ github.run_number }}
+          files: |
+            Stride.apk
+            Stride-Play.aab
           make_latest: true
-          body: Install `app-release.apk` on any Android 9+ phone. Demo data loads on first launch.
+          body: |
+            **Android 9+:** download `Stride.apk` and open it on your phone (allow installs from your browser). Demo data loads on first launch.
+            **Google Play:** `Stride-Play.aab` is the bundle for the Play Console.
